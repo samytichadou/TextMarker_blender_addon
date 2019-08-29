@@ -54,12 +54,11 @@ def register():
 
     ### PROPS ###
 
-    bpy.types.Text.text_marker_list = \
-        bpy.props.CollectionProperty(type=TextMarkerList)
-    bpy.types.Text.text_marker_index = IntProperty(update=jumpto)
-    bpy.types.Text.text_marker_ignoreindent = BoolProperty(default=True, description="If False, indent will be ignored for Update")
-    bpy.types.Text.text_marker_autojump = BoolProperty(default=True, description="Automatically jump to selected Marker")
-    bpy.types.Text.text_marker_searchterm = StringProperty(description="Search Terms for adding Markers")
+    bpy.types.Text.text_marker_list : bpy.props.CollectionProperty(type=TextMarkerList)
+    bpy.types.Text.text_marker_index : bpy.props.IntProperty(update=jumpto)
+    bpy.types.Text.text_marker_ignoreindent : bpy.props.BoolProperty(default=True, description="If False, indent will be ignored for Update")
+    bpy.types.Text.text_marker_autojump : bpy.props.BoolProperty(default=True, description="Automatically jump to selected Marker")
+    bpy.types.Text.text_marker_searchterm : bpy.props.StringProperty(description="Search Terms for adding Markers")
 
 
 def unregister():
