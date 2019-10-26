@@ -118,7 +118,6 @@ class TEXTMARKER_PT_panel(bpy.types.Panel):
 
             row = layout.row(align=True)
 
-            row.separator()
             row.prop(
                 txt, 'text_marker_ignoreindent', icon='NOCURVE', text='Indent')
             row.operator(
