@@ -45,10 +45,10 @@ class TEXTMARKER_UL_ui_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname):
         layout.prop(item, "name", text="", emboss=False, translate=False)
-        if not item.linemissing:
-            layout.label(text=str(item.linenumber))
-        else:
-            layout.label(text=str(item.linenumber), icon='ERROR')
+#        if not item.linemissing:
+#            layout.label(text=str(item.linenumber))
+#        else:
+#            layout.label(text=str(item.linenumber), icon='ERROR')
 
 
 # Draw Panel
@@ -73,51 +73,61 @@ class TEXTMARKER_PT_panel(bpy.types.Panel):
                 "text_marker_list",
                 txt,
                 "text_marker_index",
-                rows=6)
+                rows=8)
             col = row.column(align=True)
             col.operator(
                 "textmarker.actions", icon='ADD', text="").action = 'ADD'
             col.operator(
                 "textmarker.actions", icon='REMOVE', text="").action = 'DEL'
+
             col.separator()
+
             col.operator(
                 "textmarker.actions", icon='TRIA_UP', text="").action = 'UP'
             col.operator(
                 "textmarker.actions", icon='TRIA_DOWN',
                 text="").action = 'DOWN'
+
             col.separator()
+
             col.operator(
                 "textmarker.actions", icon='TRIA_LEFT',
                 text="").action = 'PREVIOUS'
             col.operator(
                 "textmarker.actions", icon='TRIA_RIGHT',
                 text="").action = 'NEXT'
+
+            col.separator()
+
             col.prop(txt, 'text_marker_autojump', icon='AUTO', text='')
+
+            if not txt.text_marker_autojump:
+                col.operator(
+                    "textmarker.jump_to", icon='OUTLINER_DATA_FONT', text="")
+
+            col.separator()
+
+            col.operator("textmarker.sort", icon='SORTSIZE', text='')
 
             if len(list) != 0 and idx < len(list):
                 row = layout.row()
                 row = row.box()
                 row.label(
-                    text=("Line : " +
+                    text=("" +
                           (list[idx].linecontent).replace("    ", "")))
 
             row = layout.row(align=True)
-            if not txt.text_marker_autojump:
-                row.operator(
-                    "textmarker.jump_to", icon='OUTLINER_DATA_FONT', text="")
-            row.operator("textmarker.sort", icon='SORTSIZE', text='')
+
             row.separator()
             row.prop(
                 txt, 'text_marker_ignoreindent', icon='NOCURVE', text='Indent')
             row.operator(
                 "textmarker.update", icon='FILE_REFRESH', text='Update')
-            row.separator()
             row.operator(
                 "textmarker.clear_missing",
                 icon='DISCLOSURE_TRI_DOWN',
                 text='Clear Missing')
-            row.separator()
-            row.operator("call.deleteall_menu", icon='X', text='')
+            row.operator("call.deleteall_menu", icon='X', text='Delete All')
             row = layout.row(align=True)
             row.operator(
                 "textmarker.add_fromsearch",
@@ -160,27 +170,23 @@ class TEXTMARKER_MT_actions(bpy.types.Operator):
                     chk = 1
             if chk == 0:
                 newmarker = items.add()
-                newmarker.name = "Text Marker " + str(len(items))
+                content = txt.lines[txt.current_line_index].body.lstrip()
+                newmarker.name = content[:28]  # "Text Marker " + str(len(items))
                 newmarker.linenumber = txt.current_line_index + 1
 
-                content = txt.lines[txt.current_line_index].body
                 beforecontent = ""
                 aftercontent = ""
                 for n in range(1, 11):
                     if txt.current_line_index - n >= 0:
-                        beforecontent = beforecontent + txt.lines[txt.
-                                                                  current_line_index
-                                                                  - n].body
+                        beforecontent = beforecontent + txt.lines[txt.current_line_index - n].body
                     if txt.current_line_index + n < len(txt.lines):
-                        aftercontent = aftercontent + txt.lines[txt.
-                                                                current_line_index
-                                                                + n].body
+                        aftercontent = aftercontent + txt.lines[txt.current_line_index + n].body
 
                 newmarker.linecontent = content
                 newmarker.linesafter = aftercontent
                 newmarker.linesbefore = beforecontent
 
-                txt.text_marker_index = len(items) - 1
+                txt.text_marker_index = len(items)
         try:
             item = txt.text_marker_list[idx]
         except IndexError:
@@ -202,14 +208,12 @@ class TEXTMARKER_MT_actions(bpy.types.Operator):
             elif self.action == 'NEXT':
                 if idx < len(items) - 1:
                     txt.text_marker_index = idx + 1
-                    txt.current_line_index = items[txt.
-                                                   text_marker_index].linenumber - 1
+                    txt.current_line_index = items[txt.text_marker_index].linenumber - 1
 
             elif self.action == 'PREVIOUS':
                 if idx < len(items) and idx > 0:
                     txt.text_marker_index = idx - 1
-                    txt.current_line_index = items[txt.
-                                                   text_marker_index].linenumber - 1
+                    txt.current_line_index = items[txt.text_marker_index].linenumber - 1
 
         return {"FINISHED"}
 
@@ -239,7 +243,7 @@ class TEXTMARKER_OT_jump_to(bpy.types.Operator):
         except IndexError:
             pass
         else:
-            bpy.ops.text.jump(line=item.linenumber - 1)
+            bpy.ops.text.jump(line=item.linenumber)
 
         return {"FINISHED"}
 
@@ -455,7 +459,10 @@ class TEXTMARKER_OT_add_from_search(bpy.types.Operator):
                 if chk == 0:
                     nb = nb + 1
                     newmarker = list.add()
-                    newmarker.name = term + " " + str(nb)
+
+                    content = li.body.lstrip()
+                    newmarker.name = content[:35]
+                    # newmarker.name = term + " " + str(nb)
                     newmarker.linecontent = li.body
                     newmarker.linenumber = line
                     beforecontent = ''
